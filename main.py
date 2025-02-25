@@ -50,7 +50,8 @@ bakgrund_y = 0
 # Skapar en tom lista att fylla för alla skotten som spelaren avfyrar
 skott_lista = [] # Lista för att hålla reda på alla skott
 
-
+# Variabler för att kunna skapa en kort fördröjning som hindrar spelaren från att skjuta för ofta
+skott_räknare = 0 # Håller koll på tiden mellan skott
 
 # *** SPELET STARTAR HÄR ***
 # Spelloop
@@ -105,13 +106,17 @@ while (spelet_körs == True):
     if keys[pygame.K_DOWN] and spelare_y < SKÄRMENS_HÖJD - sprite_spelare.get_width() + 26:
         spelare_y = spelare_y + spelarens_hastighet
         jetstråle_y = jetstråle_y + spelarens_hastighet
-    # Om spelaren trycker på SPACE skjut en kyla
+    # Om spelaren trycker på SPACE skjut en kula
     if keys[pygame.K_SPACE]:
-        # Uppdaterar skottlistan med en ny instans (kopia av skottet) på den position där det avfyrades
-        skott_lista.append(Skott(spelare_x + 20, spelare_y))
-
+        # Om tilräckligt lång tid har gått frå spelaren skjuta igen
+        if (skott_räknare > 10):
+            # Uppdaterar skottlistan med en ny instans (kopia av skottet) på den position där det avfyrades
+            skott_lista.append(Skott(spelare_x + 20, spelare_y))
+            
+            # Nollställer räknaren
+            skott_räknare = 0
+            
     for skott in reversed(skott_lista): # Iterera baklängen genom listan
-
         skott.flytta()
         skott.rita(skärm)
 
