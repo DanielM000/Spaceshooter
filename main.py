@@ -2,6 +2,9 @@
 # Importerar pygame
 import pygame
 
+# Importerar random för att kunna skapa slumptal
+import random
+
 # Initiera pygame
 pygame.init()
 
@@ -23,6 +26,8 @@ original_bild = pygame.image.load("assets/sprites/SpaceShip.png")
 sprite_jetstråle = pygame.image.load("assets/sprites/fire.png")
 # Laddar i en ny sprite till ett skott till rymdskeppet
 sprite_skott = pygame.image.load("assets/sprites/bullet.png")
+# Laddar in en ny sprite till en liten ateroid
+sprite_asteroid_liten = pygame.image.load("assets/sprites/small-A.png")
 
 # *** LADDAR IN ALLA BAKGRUNDSBILDER ***
 # Laddar en stjärnbakgrund
@@ -50,8 +55,30 @@ bakgrund_y = 0
 # Skapar en tom lista att fylla för alla skotten som spelaren avfyrar
 skott_lista = [] # Lista för att hålla reda på alla skott
 
+asteroid_liten_lista = []
+
 # Variabler för att kunna skapa en kort fördröjning som hindrar spelaren från att skjuta för ofta
 skott_räknare = 0 # Håller koll på tiden mellan skott
+
+# Variabel för att skapa en fördröjning för hur ofta en asteroid får skapas
+asteroid_liten_räknare = 0
+
+# Denna klass hanterar liten asteroid.
+class AsteroidLiten:
+    # Sätter alla instansvariabler för asteroiden
+    def __init__(self, asteroid_liten_x, asteroid_liten_y):
+        self.x = asteroid_liten_x # Asteroidens position i x-led
+        self.y = asteroid_liten_y # Asteroidens position i y-led
+        self.hastighet = 4 # Asteroidens rörelsehastighet
+        self.bild = sprite_asteroid_liten # Använd sprite-bilden
+
+    # Metod som flyttar asteroiden neråt
+    def flytta(self):
+        self.y = self.y + self.hastighet # Flytta asteroiden neråt
+
+    # Metod som ritar asteroiden på skärmen
+    def rita(self, skärm):
+        skärm.blit(self.bild, (self.x, self.y)) # Rita asteroiden på skärmen
 
 # *** SPELET STARTAR HÄR ***
 # Spelloop
@@ -92,6 +119,26 @@ while (spelet_körs == True):
         def rita(self, skärm):
             skärm.blit(self.bild, (self.x, self.y)) # Rita skottet på skärmen
 
+    # *** LITEN ASTEROID ***
+    # Om tillräckligt lång tid passerat
+    if (asteroid_liten_räknare >= 50):
+        # Skapar en ny instans av asteroiden
+        asteroid_liten_lista.append(AsteroidLiten(random.randint(0, SKÄRMENS_BREDD), 0))
+        # Återställ räknaren
+        asteroid_liten_räknare = 0
+
+    # Uppdaterar asteroid_litens räknare för att se när nästa asteroid ska skapas i spelet
+    asteroid_liten_räknare = asteroid_liten_räknare + 1
+
+    # Loopar igenom asteroidlistan baklänges och flyttar varje instans av asteroiderna och ritar dem på skärmen
+    for asteroid_liten in reversed(asteroid_liten_lista): # Iterera baklänges genom listan
+        asteroid_liten.flytta()
+        asteroid_liten.rita(skärm)
+
+        # Ta bort asteroider som hamnat utanför skärmen
+        if asteroid_liten.y > 600:
+            asteroid_liten_lista.remove(asteroid_liten)
+
     # Hantera tangenttryckningar
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT] and spelare_x > 0:
@@ -109,7 +156,7 @@ while (spelet_körs == True):
     # Om spelaren trycker på SPACE skjut en kula
     if keys[pygame.K_SPACE]:
         # Om tilräckligt lång tid har gått frå spelaren skjuta igen
-        if (skott_räknare > 10):
+        if (skott_räknare > 30):
             # Uppdaterar skottlistan med en ny instans (kopia av skottet) på den position där det avfyrades
             skott_lista.append(Skott(spelare_x + 20, spelare_y))
             
@@ -128,7 +175,7 @@ while (spelet_körs == True):
     # blit är en metod i Pygame som används för att rita (eller kopiera) en bild (eller yta) till en annan yta
     skärm.blit(sprite_spelare, (spelare_x, spelare_y))
 
-    #Rita Jetstråle
+    # Rita Jetstråle
     skärm.blit(sprite_jetstråle, (jetstråle_x, jetstråle_y))
 
     # Uppdaterar grafiken på skärmen så att spelaren ser vart alla spelfigurer flyttat någonstans
@@ -140,6 +187,9 @@ while (spelet_körs == True):
         # Om användaren klickar på fönstrets stängningsknapp avslutas loopen
         if event.type == pygame.QUIT:
             spelet_körs = False
+    
+    # Ökar skott räknaren
+    skott_räknare = skott_räknare + 1
 
 # Avslutar spelet
 pygame.quit()
@@ -157,4 +207,4 @@ Steg 8 - Gör så att rymdskeppet kan explodera i kollision med asteroiden
 Steg 9 - Gör så att rymdskeppet kan skjuta ner asteroider
 Steg 10 - Lägg till musik och ljudeffekter
 '''
-# Google Presentationer: 76
+# Google Presentationer: 98
