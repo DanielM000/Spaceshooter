@@ -69,16 +69,26 @@ class AsteroidLiten:
     def __init__(self, asteroid_liten_x, asteroid_liten_y):
         self.x = asteroid_liten_x # Asteroidens position i x-led
         self.y = asteroid_liten_y # Asteroidens position i y-led
-        self.hastighet = 4 # Asteroidens rörelsehastighet
+        self.hastighet = 1 # Asteroidens rörelsehastighet
         self.bild = sprite_asteroid_liten # Använd sprite-bilden
-
+        self.kollisions_rektangel_asteroid = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
+        
     # Metod som flyttar asteroiden neråt
     def flytta(self):
         self.y = self.y + self.hastighet # Flytta asteroiden neråt
+        self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
 
     # Metod som ritar asteroiden på skärmen
     def rita(self, skärm):
         skärm.blit(self.bild, (self.x, self.y)) # Rita asteroiden på skärmen
+
+    # Rita kollisionsrektangeln (färgen kan justeras)
+        pygame.draw.rect(skärm, (255, 0, 0), self.kollisions_rektangel_asteroid, 2) # Röd rektangel med tjocklek 2
+    
+    # Metod som undersöker om asteroiden har kolliderat med något
+    def kollidera(self, kollisionsobjekt):
+        if (self.kollisions_rektangel_asteroid.colliderect(kollisionsobjekt)):
+            print("Kollision upptäckt!")
 
 # *** SPELET STARTAR HÄR ***
 # Spelloop
@@ -108,7 +118,7 @@ while (spelet_körs == True):
         def __init__(self, x, y):
             self.x = x # Skottets position i x-led
             self.y = y # Skottets position i y-led
-            self.hastighet = 10 # Skottets rörelsehastighet
+            self.hastighet = 5 # Skottets rörelsehastighet
             self.bild = sprite_skott # Använd sprite-bilden
             
         # Metod som flyttar skottet uppåt
@@ -121,7 +131,7 @@ while (spelet_körs == True):
 
     # *** LITEN ASTEROID ***
     # Om tillräckligt lång tid passerat
-    if (asteroid_liten_räknare >= 50):
+    if (asteroid_liten_räknare >= 60):
         # Skapar en ny instans av asteroiden
         asteroid_liten_lista.append(AsteroidLiten(random.randint(0, SKÄRMENS_BREDD), 0))
         # Återställ räknaren
@@ -130,9 +140,16 @@ while (spelet_körs == True):
     # Uppdaterar asteroid_litens räknare för att se när nästa asteroid ska skapas i spelet
     asteroid_liten_räknare = asteroid_liten_räknare + 1
 
+    # Skapa en rektangel för rymdskeppet baserat på dess position och storlek
+    kollisions_rektangel_spelare = pygame.Rect(spelare_x, spelare_y, sprite_spelare.get_width(), sprite_spelare.get_height())
+
+    # Rita kollisionsrektangeln (färger kan justeras)
+    pygame.draw.rect(skärm, (0, 0, 255), kollisions_rektangel_spelare, 2) # Blå rektangel med tjocklek 2
+
     # Loopar igenom asteroidlistan baklänges och flyttar varje instans av asteroiderna och ritar dem på skärmen
     for asteroid_liten in reversed(asteroid_liten_lista): # Iterera baklänges genom listan
         asteroid_liten.flytta()
+        asteroid_liten.kollidera(kollisions_rektangel_spelare)
         asteroid_liten.rita(skärm)
 
         # Ta bort asteroider som hamnat utanför skärmen
@@ -153,8 +170,8 @@ while (spelet_körs == True):
     if keys[pygame.K_DOWN] and spelare_y < SKÄRMENS_HÖJD - sprite_spelare.get_width() + 26:
         spelare_y = spelare_y + spelarens_hastighet
         jetstråle_y = jetstråle_y + spelarens_hastighet
-    # Om spelaren trycker på SPACE skjut en kula
-    if keys[pygame.K_SPACE]:
+    # Om spelaren trycker på X skjut en kula
+    if keys[pygame.K_x]:
         # Om tilräckligt lång tid har gått frå spelaren skjuta igen
         if (skott_räknare > 30):
             # Uppdaterar skottlistan med en ny instans (kopia av skottet) på den position där det avfyrades
@@ -207,4 +224,4 @@ Steg 8 - Gör så att rymdskeppet kan explodera i kollision med asteroiden
 Steg 9 - Gör så att rymdskeppet kan skjuta ner asteroider
 Steg 10 - Lägg till musik och ljudeffekter
 '''
-# Google Presentationer: 98
+# Google Presentationer: 106
