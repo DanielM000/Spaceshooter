@@ -57,11 +57,68 @@ skott_lista = [] # Lista för att hålla reda på alla skott
 
 asteroid_liten_lista = []
 
+# Lista för alla explosioner (varje explosion är en lista med partiklar)
+explosioner = []
+
 # Variabler för att kunna skapa en kort fördröjning som hindrar spelaren från att skjuta för ofta
 skott_räknare = 0 # Håller koll på tiden mellan skott
 
 # Variabel för att skapa en fördröjning för hur ofta en asteroid får skapas
 asteroid_liten_räknare = 0
+
+# Färger som används till explosionseffekten
+SVART = (0, 0, 0)
+FÄRG_LISTA = [(255, 50, 50), (255, 150, 50), (255, 255, 50)]  # Röd, orange, gul
+
+# Denna klass hanterar allt som rör spelarens rymdskepp
+class RymdSkepp:
+    def __init__(self):
+        """Alla instansvariabler för rymdskeppet"""
+        self.spelare_x = SKÄRMENS_BREDD // 2 - 60 # Rymdskeppets startposition x-led
+        self.spelare_y = SKÄRMENS_HÖJD - 110 # Rymdskeppets startposition y-led
+        self.sprite_spelare = sprite_spelare # Spelarens sprite/bild
+
+        self.jetstråle_x = spelare_x + 13 # Jetstrålens startposition x-led
+        self.jetstråle_y = spelare_y + 46 # Jetstrålens startposition y-led
+        self.sprite_jetstråle = sprite_jetstråle # Jetstrålens sprite/bild
+
+        self.spelarens_hastighet = 1 # Rymdskeppets hastighet
+
+        self.exploderat = False # När spelet börjar har INTE rymdskeppet exploderat
+
+        # Skapar en rektangel för rymdskeppet baserat på dess position och storlek
+        self.kollision_rektangel = pygame.Rect(self.spelare_x, self.spelare_y, self.sprite_spelare.get_width(), self.sprite_spelare.get_height())
+    
+    def flytta(self, riktning):
+        """Flyttar spelaren i en viss riktning."""
+        if not self.exploderat: # Om rymdskeppet har exploderat, gör ingeting
+            if riktning == "vänster":
+                self.spelare_x = self.spelare_x - self.spelarens_hastighet
+                self.jetstråle_x = self.jetstråle_x - self.spelarens_hastighet
+            elif riktning == "höger":
+                self.spelare_x = self.spelare_x + self.spelarens_hastighet
+                self.jetstråle_x = self.jetstråle_x + self.spelarens_hastighet
+            elif riktning == "upp":
+                self.spelare_y = self.spelare_y - self.spelarens_hastighet
+                self.jetstråle_y = self.jetstråle_y - self.spelarens_hastighet
+            elif riktning == "ner":
+                self.spelare_y = self.spelare_y + self.spelarens_hastighet
+                self.jetstråle_y = self.jetstråle_y + self.spelarens_hastighet
+            
+            # Flytta med kollisionsrektangeln till där rymdskeppet är
+            self.kollision_rektangel.topleft = (self.spelare_x, self.spelare_y)
+    
+    def rita(self, skärm):
+        """Ritar spelaren på skärmen."""
+        if not self.exploderat: # Om rymdskeppet har exploderat, rita inte det längre
+            skärm.blit(self.sprite_spelare, (self.spelare_x, self.spelare_y))
+            skärm.blit(self.sprite_jetstråle, (self.jetstråle_x, self.jetstråle_y))
+
+            # Rita kollisionsrektangeln (färgen kan justeras)
+            pygame.draw.rect(skärm, (0, 0, 255), self.kollision_rektangel, 2) # Blå rektangel med trjocklek 2
+        else:
+            # Ta bort kollisionsrektangeln när rymdskeppet är förstört
+            self.kollision_rektangel = pygame.Rect(0, 0, 0, 0)
 
 # Denna klass hanterar liten asteroid.
 class AsteroidLiten:
@@ -89,6 +146,26 @@ class AsteroidLiten:
     def kollidera(self, kollisionsobjekt):
         if (self.kollisions_rektangel_asteroid.colliderect(kollisionsobjekt)):
             print("Kollision upptäckt!")
+
+# Klass för en enskild partikel
+class Partikel:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.livstid = random.randint(20, 50)  # Hur länge partikeln lever
+        self.hastighet_x = random.uniform(-2, 2)  # Slumpmässig rörelse i x-led
+        self.hastighet_y = random.uniform(-2, 2)  # Slumpmässig rörelse i y-led
+        self.radius = random.randint(3, 6)  # Storlek på partikeln
+        self.färg = random.choice(FÄRG_LISTA)  # Slumpmässig färg
+
+    def uppdatera(self):
+        self.x += self.hastighet_x  # Flytta partikeln i x-led
+        self.y += self.hastighet_y  # Flytta partikeln i y-led
+        self.livstid -= 1  # Minska livslängden
+
+    def rita(self, skärm):
+        if self.livstid > 0:
+            pygame.draw.circle(skärm, self.färg, (int(self.x), int(self.y)), self.radius)
 
 # *** SPELET STARTAR HÄR ***
 # Spelloop
@@ -194,6 +271,20 @@ while (spelet_körs == True):
 
     # Rita Jetstråle
     skärm.blit(sprite_jetstråle, (jetstråle_x, jetstråle_y))
+
+    # Uppdatera och rita explosionerna
+    for explosion in explosioner:
+        for partikel in explosion:
+            partikel.uppdatera()
+            partikel.rita(skärm)
+
+    # Ta bort döda partiklar (de som har en livslängd på 0)
+    explosioner = [[p for p in explosion if p.livstid > 0] for explosion in explosioner]
+    explosioner = [e for e in explosioner if len(e) > 0]  # Ta bort tomma explosioner
+
+    # Testkod för att skapa en explosion
+    explosion = [Partikel(500, 500) for _ in range(100)] # Skapa 100 partiklar
+    explosioner.append(explosion)
 
     # Uppdaterar grafiken på skärmen så att spelaren ser vart alla spelfigurer flyttat någonstans
     pygame.display.update()
