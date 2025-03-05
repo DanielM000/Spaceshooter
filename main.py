@@ -142,10 +142,14 @@ class AsteroidLiten:
     # Rita kollisionsrektangeln (färgen kan justeras)
         pygame.draw.rect(skärm, (255, 0, 0), self.kollisions_rektangel_asteroid, 2) # Röd rektangel med tjocklek 2
     
-    # Metod som undersöker om asteroiden har kolliderat med något
-    def kollidera(self, kollisionsobjekt):
-        if (self.kollisions_rektangel_asteroid.colliderect(kollisionsobjekt)):
-            print("Kollision upptäckt!")
+    # Metod som undersöker om asteroiden har kolliderat med rymdskeppet
+    def kollidera(self, rymdskepp):
+        if not spelare.exploderat: # Kontrollera kollision endast om skeppet inte är förstört
+            if (self.kollisions_rektangel_asteroid.colliderect(rymdskepp)):
+                print("Kollision upptäckt med rymdskeppet!")
+                spelare.exploderat = True
+                explosion = [Partikel(spelare.spelare_x + 60, spelare.spelare_y + 46) for _ in range(100)] # Skapa 100 partiklar
+                explosioner.append(explosion)
 
 # Klass för en enskild partikel
 class Partikel:
@@ -166,6 +170,10 @@ class Partikel:
     def rita(self, skärm):
         if self.livstid > 0:
             pygame.draw.circle(skärm, self.färg, (int(self.x), int(self.y)), self.radius)
+    
+spelare = RymdSkepp()
+
+paus = 0
 
 # *** SPELET STARTAR HÄR ***
 # Spelloop
@@ -233,6 +241,12 @@ while (spelet_körs == True):
         if asteroid_liten.y > 600:
             asteroid_liten_lista.remove(asteroid_liten)
 
+    # Om spelarens skepp exploderat läggs en kort paus in här innan spelet avslutas
+    if (spelare.exploderat == True):
+        paus = paus + 1
+        if (paus >= 120):
+            exit()
+
     # Hantera tangenttryckningar
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT] and spelare_x > 0:
@@ -282,10 +296,6 @@ while (spelet_körs == True):
     explosioner = [[p for p in explosion if p.livstid > 0] for explosion in explosioner]
     explosioner = [e for e in explosioner if len(e) > 0]  # Ta bort tomma explosioner
 
-    # Testkod för att skapa en explosion
-    explosion = [Partikel(500, 500) for _ in range(100)] # Skapa 100 partiklar
-    explosioner.append(explosion)
-
     # Uppdaterar grafiken på skärmen så att spelaren ser vart alla spelfigurer flyttat någonstans
     pygame.display.update()
 
@@ -315,4 +325,4 @@ Steg 8 - Gör så att rymdskeppet kan explodera i kollision med asteroiden
 Steg 9 - Gör så att rymdskeppet kan skjuta ner asteroider
 Steg 10 - Lägg till musik och ljudeffekter
 '''
-# Google Presentationer: 106
+# Google Presentationer: 115
