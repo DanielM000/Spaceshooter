@@ -8,6 +8,22 @@ import random
 # Initiera pygame
 pygame.init()
 
+# Initiera Pygame Mixer
+pygame.mixer.init()
+
+# Ladda och spela bakgrundsmusiken (ange filnamnet)
+pygame.mixer.music.load("assets/music/Mesmerizing Galaxy Loop.mp3") # Ersätt med rätt sökväg
+pygame.mixer.music.set_volume(0.5) # Justera volym (0.0 - 1.0)
+pygame.mixer.music.play(-1) # Spela loopen (-1 betyder oändlig loop)
+
+# Ladda ljudeffekter
+sound_liten_explosion = pygame.mixer.Sound("assets/sounds/scfi_explosion.wav") # Explosion-ljud
+sound_stor_explosion = pygame.mixer.Sound("assets/sounds/huge_explosion.wav") # Explosion-ljud
+
+# Justera volym om det behövs
+sound_liten_explosion.set_volume(0.7)
+sound_stor_explosion.set_volume(0.9)
+
 # *** KONFIGURERA FÖNSTRET ***
 # Skärmstorlek
 SKÄRMENS_BREDD = 800
@@ -140,16 +156,29 @@ class AsteroidLiten:
         skärm.blit(self.bild, (self.x, self.y)) # Rita asteroiden på skärmen
 
     # Rita kollisionsrektangeln (färgen kan justeras)
-        pygame.draw.rect(skärm, (255, 0, 0), self.kollisions_rektangel_asteroid, 2) # Röd rektangel med tjocklek 2
+        #pygame.draw.rect(skärm, (255, 0, 0), self.kollisions_rektangel_asteroid, 2) # Röd rektangel med tjocklek 2
     
     # Metod som undersöker om asteroiden har kolliderat med rymdskeppet
     def kollidera(self, rymdskepp):
         if not spelare.exploderat: # Kontrollera kollision endast om skeppet inte är förstört
             if (self.kollisions_rektangel_asteroid.colliderect(rymdskepp)):
                 print("Kollision upptäckt med rymdskeppet!")
+                sound_stor_explosion.play()
                 spelare.exploderat = True
-                explosion = [Partikel(spelare.spelare_x + 60, spelare.spelare_y + 46) for _ in range(100)] # Skapa 100 partiklar
+                explosion = [Partikel(jetstråle_x, jetstråle_y) for _ in range(100)] # Skapa 100 partiklar
                 explosioner.append(explosion)
+    
+    def kollidera_med_skott(self, skott_lista):
+        """Kontrollerar om en asteroid har kolliderat med ett skott"""
+        for skott in skott_lista:
+            if self.kollisions_rektangel_asteroid.colliderect(pygame.Rect(skott.x, skott.y, skott.bild.get_width(), skott.bild.get_height())):
+                print("Asteroiden träffades av skottet!")
+                sound_liten_explosion.play()
+                skott_lista.remove(skott) # Ta bort skottet
+                explosion = [Partikel(self.x + self.bild.get_width() // 2, self.y + self.bild.get_height() // 2) for _ in range(100)]
+                explosioner.append(explosion) # Skapa explosionseffekten
+                return True # Returnera True om kollision har skett
+        return False
 
 # Klass för en enskild partikel
 class Partikel:
@@ -218,7 +247,7 @@ while (spelet_körs == True):
     # Om tillräckligt lång tid passerat
     if (asteroid_liten_räknare >= 60):
         # Skapar en ny instans av asteroiden
-        asteroid_liten_lista.append(AsteroidLiten(random.randint(0, SKÄRMENS_BREDD), 0))
+        asteroid_liten_lista.append(AsteroidLiten(random.randint(0, SKÄRMENS_BREDD), -50))
         # Återställ räknaren
         asteroid_liten_räknare = 0
 
@@ -229,7 +258,7 @@ while (spelet_körs == True):
     kollisions_rektangel_spelare = pygame.Rect(spelare_x, spelare_y, sprite_spelare.get_width(), sprite_spelare.get_height())
 
     # Rita kollisionsrektangeln (färger kan justeras)
-    pygame.draw.rect(skärm, (0, 0, 255), kollisions_rektangel_spelare, 2) # Blå rektangel med tjocklek 2
+    #pygame.draw.rect(skärm, (0, 0, 255), kollisions_rektangel_spelare, 2) # Blå rektangel med tjocklek 2
 
     # Loopar igenom asteroidlistan baklänges och flyttar varje instans av asteroiderna och ritar dem på skärmen
     for asteroid_liten in reversed(asteroid_liten_lista): # Iterera baklänges genom listan
@@ -240,6 +269,10 @@ while (spelet_körs == True):
         # Ta bort asteroider som hamnat utanför skärmen
         if asteroid_liten.y > 600:
             asteroid_liten_lista.remove(asteroid_liten)
+
+    # Om asteroiden kolliderar med ett skot
+        if asteroid_liten.kollidera_med_skott(skott_lista):
+            asteroid_liten_lista.remove(asteroid_liten) # Ta bort asteroiden från listan
 
     # Om spelarens skepp exploderat läggs en kort paus in här innan spelet avslutas
     if (spelare.exploderat == True):
@@ -276,7 +309,7 @@ while (spelet_körs == True):
         skott.rita(skärm)
 
         # Ta bort skott som hamnat utanför skärmen
-        if skott.y < -100:
+        if skott.y < -50:
             skott_lista.remove(skott)
 
     # Rita spelare
@@ -325,4 +358,4 @@ Steg 8 - Gör så att rymdskeppet kan explodera i kollision med asteroiden
 Steg 9 - Gör så att rymdskeppet kan skjuta ner asteroider
 Steg 10 - Lägg till musik och ljudeffekter
 '''
-# Google Presentationer: 115
+# Google Presentationer: 139
