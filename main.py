@@ -35,6 +35,16 @@ skärm = pygame.display.set_mode((SKÄRMENS_BREDD, SKÄRMENS_HÖJD))
 # Sätter en fönstertitel på spelet
 pygame.display.set_caption("Space Shooter")
 
+# *** LADDAR ALLA TECKENSNITT OCH SKAPAR TEXTER ***
+
+# Ladda en egen font
+font = pygame.font.Font("assets/fonts/ZenDots-Regular.ttf", 64) # Ange din font-fil
+font_poäng = pygame.font.Font("assets/fonts/ZenDots-Regular.ttf", 24)
+
+# Skapa en Game Over text
+text_game_over = font.render("SPELET ÄR SLUT!", True, (255, 0, 0)) # Röd färg
+text_rect = text_game_over.get_rect(center=(SKÄRMENS_BREDD // 2, SKÄRMENS_HÖJD // 2)) # Centrera texten
+
 # *** LADDAR IN ALLA SPRITES ***
 # Laddar i en ny sprite för rymdskeppet
 original_bild = pygame.image.load("assets/sprites/SpaceShip.png")
@@ -173,6 +183,7 @@ class AsteroidLiten:
         for skott in skott_lista:
             if self.kollisions_rektangel_asteroid.colliderect(pygame.Rect(skott.x, skott.y, skott.bild.get_width(), skott.bild.get_height())):
                 print("Asteroiden träffades av skottet!")
+                gränssnitt_hanteraren.poäng = gränssnitt_hanteraren.poäng + 1 # Uppdaterar spelarens poäng
                 sound_liten_explosion.play()
                 skott_lista.remove(skott) # Ta bort skottet
                 explosion = [Partikel(self.x + self.bild.get_width() // 2, self.y + self.bild.get_height() // 2) for _ in range(100)]
@@ -199,8 +210,18 @@ class Partikel:
     def rita(self, skärm):
         if self.livstid > 0:
             pygame.draw.circle(skärm, self.färg, (int(self.x), int(self.y)), self.radius)
+
+class Gränssnitt:
+    """ Klass som ritar ut allt som har med spelets gränssnitt att göra """
+    def __init__(self):
+        self.poäng = 0
+    
+    def uppdatera():
+        poäng = poäng + 1
     
 spelare = RymdSkepp()
+
+gränssnitt_hanteraren = Gränssnitt()
 
 paus = 0
 
@@ -273,9 +294,15 @@ while (spelet_körs == True):
     # Om asteroiden kolliderar med ett skot
         if asteroid_liten.kollidera_med_skott(skott_lista):
             asteroid_liten_lista.remove(asteroid_liten) # Ta bort asteroiden från listan
+    
+    # Skapa en text som visar poängen
+    score_text = font_poäng.render(f"Poäng: {gränssnitt_hanteraren.poäng}", True, (255, 255, 255)) # Vit text
+    skärm.blit(score_text, (10, 10)) # Rita texten i övre vänstra hörnet
 
     # Om spelarens skepp exploderat läggs en kort paus in här innan spelet avslutas
     if (spelare.exploderat == True):
+        # Ritar "Game Over" texten på skärmen.
+        skärm.blit(text_game_over, text_rect) # Rita texten på skärmen
         paus = paus + 1
         if (paus >= 120):
             exit()
@@ -358,4 +385,4 @@ Steg 8 - Gör så att rymdskeppet kan explodera i kollision med asteroiden
 Steg 9 - Gör så att rymdskeppet kan skjuta ner asteroider
 Steg 10 - Lägg till musik och ljudeffekter
 '''
-# Google Presentationer: 139
+# Google Presentationer: 151
