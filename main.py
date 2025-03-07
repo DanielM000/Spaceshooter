@@ -173,10 +173,20 @@ class AsteroidLiten:
         if not spelare.exploderat: # Kontrollera kollision endast om skeppet inte är förstört
             if (self.kollisions_rektangel_asteroid.colliderect(rymdskepp)):
                 print("Kollision upptäckt med rymdskeppet!")
-                sound_stor_explosion.play()
-                spelare.exploderat = True
+
+                # Om spelaren har energi kvar gör det här:
+                asteroid_liten_lista.remove(asteroid_liten) # Ta bort asteroiden från listan
+                gränssnitt_hanteraren.uppdatera_energi()
+                sound_stor_explosion.play() # Spela explosionseffekten
                 explosion = [Partikel(jetstråle_x, jetstråle_y) for _ in range(100)] # Skapa 100 partiklar
                 explosioner.append(explosion)
+
+                # Om spelaren har slut på energi gör i stället detta:
+                if (gränssnitt_hanteraren.energi_kvar <= 0):
+                    spelare.exploderat = True
+                    sound_stor_explosion.play() # Spela explosionseffekten
+                    explosion = [Partikel(jetstråle_x, jetstråle_y) for _ in range(100)] # Skapa 100 partiklar
+                    explosioner.append(explosion)
     
     def kollidera_med_skott(self, skott_lista):
         """Kontrollerar om en asteroid har kolliderat med ett skott"""
@@ -215,9 +225,13 @@ class Gränssnitt:
     """ Klass som ritar ut allt som har med spelets gränssnitt att göra """
     def __init__(self):
         self.poäng = 0
+        self.energi_kvar = 200
     
     def uppdatera():
         poäng = poäng + 1
+    
+    def uppdatera_energi(self):
+        self.energi_kvar = self.energi_kvar - 40
     
 spelare = RymdSkepp()
 
@@ -355,6 +369,10 @@ while (spelet_körs == True):
     # Ta bort döda partiklar (de som har en livslängd på 0)
     explosioner = [[p for p in explosion if p.livstid > 0] for explosion in explosioner]
     explosioner = [e for e in explosioner if len(e) > 0]  # Ta bort tomma explosioner
+
+    # Rita ut energibaren i gränssnittet en grön ovanpå en röd
+    pygame.draw.rect(skärm, (255, 0, 0), (200, 10, 200, 40)) # Röd rektangel
+    pygame.draw.rect(skärm, (0,255,0), (200, 10, gränssnitt_hanteraren.energi_kvar, 40)) # Grön rektangel
 
     # Uppdaterar grafiken på skärmen så att spelaren ser vart alla spelfigurer flyttat någonstans
     pygame.display.update()
