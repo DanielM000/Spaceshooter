@@ -26,8 +26,8 @@ sound_stor_explosion.set_volume(0.9)
 
 # *** KONFIGURERA FÖNSTRET ***
 # Skärmstorlek
-SKÄRMENS_BREDD = 800
-SKÄRMENS_HÖJD = 600
+SKÄRMENS_BREDD = 1000
+SKÄRMENS_HÖJD = 700
 
 # Skapar en skärm med angiven bredd och höjd
 skärm = pygame.display.set_mode((SKÄRMENS_BREDD, SKÄRMENS_HÖJD))
@@ -52,10 +52,12 @@ original_bild = pygame.image.load("assets/sprites/SpaceShip.png")
 sprite_jetstråle = pygame.image.load("assets/sprites/fire.png")
 # Laddar i en ny sprite till ett skott till rymdskeppet
 sprite_skott = pygame.image.load("assets/sprites/bullet.png")
-# Laddar in en ny sprite till en liten ateroid
+# Laddar in en ny sprite till en liten asteroid
 sprite_asteroid_liten = pygame.image.load("assets/sprites/small-A.png")
-# Laddar in en ny sprite till en mellanstor ateroid
+# Laddar in en ny sprite till en mellanstor asteroid
 sprite_asteroid_mellan = pygame.image.load("assets/sprites/medium-A.png")
+# Laddar in en ny sprite till en stor asteroid
+sprite_asteroid_stor = pygame.image.load("assets/sprites/large-A.png")
 
 # *** LADDAR IN ALLA BAKGRUNDSBILDER ***
 # Laddar en stjärnbakgrund
@@ -70,7 +72,7 @@ sprite_spelare = pygame.transform.scale(original_bild, (original_bild.get_width(
 # Sätt spelarens startposition
 spelare_x = SKÄRMENS_BREDD // 2 - 60
 spelare_y = SKÄRMENS_HÖJD - 110
-spelarens_hastighet = 2
+spelarens_hastighet = 3
 
 # Sätt jetstrålens starposition
 jetstråle_x = spelare_x + 13
@@ -88,6 +90,9 @@ asteroid_liten_lista = [] # Lista för att hållareda på asteroiderna
 
 # Skapar en tom lista för att fylla med mellanstora asteroider som spawnas
 asteroid_mellan_lista = [] # Lista för att hållareda på asteroiderna
+
+# Skapar en tom lista för att fylla med stora asteroider som spawnas
+asteroid_stor_lista = [] # Lista för att hållareda på asteroiderna
 
 # Lista för alla explosioner (varje explosion är en lista med partiklar)
 explosioner = []
@@ -114,7 +119,7 @@ class RymdSkepp:
         self.jetstråle_y = spelare_y + 46 # Jetstrålens startposition y-led
         self.sprite_jetstråle = sprite_jetstråle # Jetstrålens sprite/bild
 
-        self.spelarens_hastighet = 2 # Rymdskeppets hastighet
+        self.spelarens_hastighet = 3 # Rymdskeppets hastighet
 
         self.exploderat = False # När spelet börjar har INTE rymdskeppet exploderat
 
@@ -158,7 +163,7 @@ class AsteroidLiten:
     def __init__(self, asteroid_liten_x, asteroid_liten_y):
         self.x = asteroid_liten_x # Asteroidens position i x-led
         self.y = asteroid_liten_y # Asteroidens position i y-led
-        self.hastighet = 2 # Asteroidens rörelsehastighet
+        self.hastighet = 3 # Asteroidens rörelsehastighet
         self.bild = sprite_asteroid_liten # Använd sprite-bilden
         self.kollisions_rektangel_asteroid = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
         self.riktning = random.randint(1, 3) # Sätt en slumpmässig riktning en gång vid skapandet
@@ -170,13 +175,13 @@ class AsteroidLiten:
     
     # Metod som flyttar asteroiden neråt snett åt vänste
     def flytta_snett_vänster(self):
-        self.y = self.x + self.hastighet # Flytta asteroiden neråt
+        self.y = self.y + self.hastighet # Flytta asteroiden neråt
         self.x = self.x - 1
         self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
 
     # Metod som flyttar asteroiden neråt snett åt höger
     def flytta_snett_höger(self):
-        self.y = self.x + self.hastighet # Flytta asteroiden neråt
+        self.y = self.y + self.hastighet # Flytta asteroiden neråt
         self.x = self.x + 1
         self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
 
@@ -226,13 +231,26 @@ class AsteroidMellan:
     def __init__(self, asteroid_mellan_x, asteroid_mellan_y):
         self.x = asteroid_mellan_x # Asteroidens position i x-led
         self.y = asteroid_mellan_y # Asteroidens position i y-led
-        self.hastighet = 1 # Asteroidens rörelsehastighet
+        self.hastighet = 2 # Asteroidens rörelsehastighet
         self.bild = sprite_asteroid_mellan # Används sprite-bilden
         self.kollisions_rektangel_asteroid = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
+        self.riktning = random.randint(1, 3) # Sätt en slumpmässig riktning en gång vid skapandet
     
     # Metod som flyttar asteroiden neråt
     def flytta(self):
         self.y = self.y + self.hastighet # Flytta asteroiden neråt
+        self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
+    
+    # Metod som flyttar asteroiden neråt snett åt vänste
+    def flytta_snett_vänster(self):
+        self.y = self.y + self.hastighet # Flytta asteroiden neråt
+        self.x = self.x - 1
+        self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
+
+    # Metod som flyttar asteroiden neråt snett åt höger
+    def flytta_snett_höger(self):
+        self.y = self.y + self.hastighet # Flytta asteroiden neråt
+        self.x = self.x + 1
         self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
 
     # Metod som ritar asteroiden på skärmen
@@ -260,6 +278,71 @@ class AsteroidMellan:
 
                 # Om spelaren har energi kvar gör det här:
                 asteroid_mellan_lista.remove(asteroid_mellan) # Ta bort asteroiden från listan
+                gränssnitt_hanteraren.uppdatera_energi()
+                sound_stor_explosion.play() # Spela explosionseffekten
+                explosion = [Partikel(jetstråle_x, jetstråle_y) for _ in range(100)] # Skapa 100 partiklar
+                explosioner.append(explosion)
+
+                # Om spelaren har slut på energi gör i stället detta:
+                if (gränssnitt_hanteraren.energi_kvar <= 0):
+                    spelare.exploderat = True
+                    sound_stor_explosion.play() # Spela explosionseffekten
+                    explosion = [Partikel(jetstråle_x, jetstråle_y) for _ in range(100)] # Skapa 100 partiklar
+                    explosioner.append(explosion)
+
+# Denna klass hanterar stor asteroid.
+class AsteroidStor:
+    # Sätter alla instansvariabler för asteroiden
+    def __init__(self, asteroid_stor_x, asteroid_stor_y):
+        self.x = asteroid_stor_x # Asteroidens position i x-led
+        self.y = asteroid_stor_y # Asteroidens position i y-led
+        self.hastighet = 1 # Asteroidens rörelsehastighet
+        self.bild = sprite_asteroid_stor # Används sprite-bilden
+        self.kollisions_rektangel_asteroid = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
+        self.riktning = random.randint(1, 3) # Sätt en slumpmässig riktning en gång vid skapandet
+    
+    # Metod som flyttar asteroiden neråt
+    def flytta(self):
+        self.y = self.y + self.hastighet # Flytta asteroiden neråt
+        self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
+    
+    # Metod som flyttar asteroiden neråt snett åt vänste
+    def flytta_snett_vänster(self):
+        self.y = self.y + self.hastighet # Flytta asteroiden neråt
+        self.x = self.x - 1
+        self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
+
+    # Metod som flyttar asteroiden neråt snett åt höger
+    def flytta_snett_höger(self):
+        self.y = self.y + self.hastighet # Flytta asteroiden neråt
+        self.x = self.x + 1
+        self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
+
+    # Metod som ritar asteroiden på skärmen
+    def rita(self, skärm):
+        skärm.blit(self.bild, (self.x, self.y)) # Rita asteroiden på skärmen
+    
+    def kollidera_med_skott(self, skott_lista):
+        """Kontrollerar om en asteroid har kolliderat med ett skott"""
+        for skott in skott_lista:
+            if self.kollisions_rektangel_asteroid.colliderect(pygame.Rect(skott.x, skott.y, skott.bild.get_width(), skott.bild.get_height())):
+                print("Stor Asteroiden träffades av skottet!")
+                gränssnitt_hanteraren.poäng = gränssnitt_hanteraren.poäng + 1 # Uppdaterar spelarens poäng
+                sound_liten_explosion.play()
+                skott_lista.remove(skott) # Ta bort skottet
+                explosion = [Partikel(self.x + self.bild.get_width() // 2, self.y + self.bild.get_height() // 2) for _ in range(100)]
+                explosioner.append(explosion) # Skapa explosionseffekten
+                return True # Returnera True om kollision har skett
+        return False
+    
+    # Metod som undersöker om asteroiden har kolliderat med rymdskeppet
+    def kollidera(self, rymdskepp):
+        if not spelare.exploderat: # Kontrollera kollision endast om skeppet inte är förstört
+            if (self.kollisions_rektangel_asteroid.colliderect(rymdskepp)):
+                print("Kollision upptäckt med rymdskeppet!")
+
+                # Om spelaren har energi kvar gör det här:
+                asteroid_stor_lista.remove(asteroid_stor) # Ta bort asteroiden från listan
                 gränssnitt_hanteraren.uppdatera_energi()
                 sound_stor_explosion.play() # Spela explosionseffekten
                 explosion = [Partikel(jetstråle_x, jetstråle_y) for _ in range(100)] # Skapa 100 partiklar
@@ -325,7 +408,7 @@ while (spelet_körs == True):
     skärm.blit(background_stjärnor, (0, bakgrund_y - SKÄRMENS_HÖJD)) # Andra bilden som ligger ovanpå den första
 
     # Uppdatera både bakgrundsbildernas position
-    bakgrund_y = bakgrund_y + 2 # Rör bakgrunden neråt (justera denna för att få önskad hastighet)
+    bakgrund_y = bakgrund_y + 1 # Rör bakgrunden neråt (justera denna för att få önskad hastighet)
 
     # Om bakgrunden har rört sig för långt (längden på skärmen) så sätt tillbaka till toppen
     if bakgrund_y >= SKÄRMENS_HÖJD:
@@ -351,14 +434,17 @@ while (spelet_körs == True):
 
     # *** SKAPA NYA ASTEROIDER ***
     # Om tillräckligt lång tid passerat
-    if (asteroid_liten_räknare >= 60):
-        slumptal = random.randint(1, 3)
+    if (asteroid_liten_räknare >= 30):
+        slumptal = random.randint(1, 5)
         if (slumptal < 3):
             # Skapa en ny instans av liten asteroiden
             asteroid_liten_lista.append(AsteroidLiten(random.randint(0, SKÄRMENS_BREDD), -50))
-        elif (slumptal == 3):
+        elif (slumptal >= 3 and slumptal <= 4):
             # Skapa en ny instans av mellanstor asteroid
             asteroid_mellan_lista.append(AsteroidMellan(random.randint(0, SKÄRMENS_BREDD), -50))
+        if (slumptal == 5):
+            # Skapa en ny instans av stor asteroiden
+            asteroid_stor_lista.append(AsteroidStor(random.randint(0, SKÄRMENS_BREDD), -50))
         
         # Återställ räknaren
         asteroid_liten_räknare = 0
@@ -389,19 +475,29 @@ while (spelet_körs == True):
         asteroid_liten.rita(skärm)
 
         # Ta bort asteroider som hamnat utanför skärmen
-        if asteroid_liten.y > 600:
+        if asteroid_liten.y > 700:
             asteroid_liten_lista.remove(asteroid_liten)
         
         if asteroid_liten.kollidera_med_skott(skott_lista):
             asteroid_liten_lista.remove(asteroid_liten) # Ta bort asteroiden från listan
     
     for asteroid_mellan in reversed(asteroid_mellan_lista): # Iterera baklänges genom listan
-        asteroid_mellan.flytta()
+        
+        if (asteroid_mellan.riktning == 1):
+            asteroid_mellan.flytta_snett_vänster()
+        elif (asteroid_mellan.riktning == 2):
+            asteroid_mellan.flytta_snett_höger()
+        elif (asteroid_mellan.riktning == 3):
+            asteroid_mellan.flytta()
+
+        # Om asteroiden kolliderar med spelarens rymdskepp
         asteroid_mellan.kollidera(kollisions_rektangel_spelare)
+
+        # Ritar asteroiderna på den plats de för tillfället befinner sig på
         asteroid_mellan.rita(skärm)
 
         # Ta bort asteroider som hamnat utanför skärmen
-        if asteroid_mellan.y > 600:
+        if asteroid_mellan.y > 700:
             asteroid_mellan_lista.remove(asteroid_mellan)
 
         # Om asteroiden kolliderar med ett skot
@@ -411,6 +507,33 @@ while (spelet_körs == True):
 
             if asteroid_mellan in asteroid_mellan_lista: # Kontrollera om asteroiden finns i listan
                 asteroid_mellan_lista.remove(asteroid_mellan) # Ta bort asteroiden från listan
+    
+    for asteroid_stor in reversed(asteroid_stor_lista): # Iterera baklänges genom listan
+        
+        if (asteroid_stor.riktning == 1):
+            asteroid_stor.flytta_snett_vänster()
+        elif (asteroid_stor.riktning == 2):
+            asteroid_stor.flytta_snett_höger()
+        elif (asteroid_stor.riktning == 3):
+            asteroid_stor.flytta()
+
+        # Om asteroiden kolliderar med spelarens rymdskepp
+        asteroid_stor.kollidera(kollisions_rektangel_spelare)
+
+        # Ritar asteroiderna på den plats de för tillfället befinner sig på
+        asteroid_stor.rita(skärm)
+
+        # Ta bort asteroider som hamnat utanför skärmen
+        if asteroid_stor.y > 700:
+            asteroid_stor_lista.remove(asteroid_mellan)
+
+        # Om asteroiden kolliderar med ett skot
+        if asteroid_stor.kollidera_med_skott(skott_lista):
+            asteroid_mellan_lista.append(AsteroidLiten(asteroid_mellan.x - 60, asteroid_mellan.y))
+            asteroid_mellan_lista.append(AsteroidLiten(asteroid_mellan.x + 60, asteroid_mellan.y))
+
+            if asteroid_stor in asteroid_stor_lista: # Kontrollera om asteroiden finns i listan
+                asteroid_stor_lista.remove(asteroid_stor) # Ta bort asteroiden från listan
     
     # Skapa en text som visar poängen
     score_text = font_poäng.render(f"Poäng: {gränssnitt_hanteraren.poäng}", True, (255, 255, 255)) # Vit text
@@ -506,4 +629,3 @@ Steg 8 - Gör så att rymdskeppet kan explodera i kollision med asteroiden
 Steg 9 - Gör så att rymdskeppet kan skjuta ner asteroider
 Steg 10 - Lägg till musik och ljudeffekter
 '''
-# Google Presentationer: 157
