@@ -200,7 +200,7 @@ class AsteroidLiten:
 
                 # Om spelaren har energi kvar gör det här:
                 asteroid_liten_lista.remove(asteroid_liten) # Ta bort asteroiden från listan
-                gränssnitt_hanteraren.uppdatera_energi()
+                gränssnitt_hanteraren.uppdatera_energi_liten()
                 sound_stor_explosion.play() # Spela explosionseffekten
                 explosion = [Partikel(jetstråle_x, jetstråle_y) for _ in range(100)] # Skapa 100 partiklar
                 explosioner.append(explosion)
@@ -278,7 +278,7 @@ class AsteroidMellan:
 
                 # Om spelaren har energi kvar gör det här:
                 asteroid_mellan_lista.remove(asteroid_mellan) # Ta bort asteroiden från listan
-                gränssnitt_hanteraren.uppdatera_energi()
+                gränssnitt_hanteraren.uppdatera_energi_mellan()
                 sound_stor_explosion.play() # Spela explosionseffekten
                 explosion = [Partikel(jetstråle_x, jetstråle_y) for _ in range(100)] # Skapa 100 partiklar
                 explosioner.append(explosion)
@@ -343,7 +343,7 @@ class AsteroidStor:
 
                 # Om spelaren har energi kvar gör det här:
                 asteroid_stor_lista.remove(asteroid_stor) # Ta bort asteroiden från listan
-                gränssnitt_hanteraren.uppdatera_energi()
+                gränssnitt_hanteraren.uppdatera_energi_stor()
                 sound_stor_explosion.play() # Spela explosionseffekten
                 explosion = [Partikel(jetstråle_x, jetstråle_y) for _ in range(100)] # Skapa 100 partiklar
                 explosioner.append(explosion)
@@ -384,8 +384,14 @@ class Gränssnitt:
     def uppdatera():
         poäng = poäng + 1
     
-    def uppdatera_energi(self):
+    def uppdatera_energi_liten(self):
+        self.energi_kvar = self.energi_kvar - 20
+    
+    def uppdatera_energi_mellan(self):
         self.energi_kvar = self.energi_kvar - 40
+    
+    def uppdatera_energi_stor(self):
+        self.energi_kvar = self.energi_kvar -80
     
 spelare = RymdSkepp()
 
@@ -396,6 +402,25 @@ paus = 0
 # *** SPELET STARTAR HÄR ***
 # Spelloop
 spelet_körs = True
+meny_körs = False
+while (meny_körs == True): # Funkar inte än
+    # *** RITA BAKGRUNDSBILDEN ***
+    # Skapa en mörk bakgrundsbild
+    skärm.blit(background_mörkblå, (0,0))
+
+    # Rita stjärnorna i bakgrunden
+    skärm.blit(background_stjärnor, (0, bakgrund_y)) # Lägg till stjärnbilden från hörnet (0, 0)
+
+    # Rita en andra bakgrundsbild utanför skärmen för att skapa illusionen av kontinuerlig rörelse
+    skärm.blit(background_stjärnor, (0, bakgrund_y - SKÄRMENS_HÖJD)) # Andra bilden som ligger ovanpå den första
+
+    # Uppdatera både bakgrundsbildernas position
+    bakgrund_y = bakgrund_y + 1 # Rör bakgrunden neråt (justera denna för att få önskad hastighet)
+
+    # Om bakgrunden har rört sig för långt (längden på skärmen) så sätt tillbaka till toppen
+    if bakgrund_y >= SKÄRMENS_HÖJD:
+        bakgrund_y = 0
+
 while (spelet_körs == True):
     # *** RITA BAKGRUNDSBILDEN ***
     # Skapa en mörk bakgrundsbild
@@ -435,14 +460,14 @@ while (spelet_körs == True):
     # *** SKAPA NYA ASTEROIDER ***
     # Om tillräckligt lång tid passerat
     if (asteroid_liten_räknare >= 30):
-        slumptal = random.randint(1, 5)
-        if (slumptal < 3):
+        slumptal = random.randint(1, 9)
+        if (slumptal <= 5):
             # Skapa en ny instans av liten asteroiden
             asteroid_liten_lista.append(AsteroidLiten(random.randint(0, SKÄRMENS_BREDD), -50))
-        elif (slumptal >= 3 and slumptal <= 4):
+        elif (slumptal > 5 and slumptal <= 8):
             # Skapa en ny instans av mellanstor asteroid
             asteroid_mellan_lista.append(AsteroidMellan(random.randint(0, SKÄRMENS_BREDD), -50))
-        if (slumptal == 5):
+        if (slumptal == 9):
             # Skapa en ny instans av stor asteroiden
             asteroid_stor_lista.append(AsteroidStor(random.randint(0, SKÄRMENS_BREDD), -50))
         
@@ -525,12 +550,12 @@ while (spelet_körs == True):
 
         # Ta bort asteroider som hamnat utanför skärmen
         if asteroid_stor.y > 700:
-            asteroid_stor_lista.remove(asteroid_mellan)
+            asteroid_stor_lista.remove(asteroid_stor)
 
         # Om asteroiden kolliderar med ett skot
         if asteroid_stor.kollidera_med_skott(skott_lista):
-            asteroid_mellan_lista.append(AsteroidLiten(asteroid_mellan.x - 60, asteroid_mellan.y))
-            asteroid_mellan_lista.append(AsteroidLiten(asteroid_mellan.x + 60, asteroid_mellan.y))
+            asteroid_mellan_lista.append(AsteroidMellan(asteroid_stor.x - 60, asteroid_stor.y))
+            asteroid_mellan_lista.append(AsteroidMellan(asteroid_stor.x + 60, asteroid_stor.y))
 
             if asteroid_stor in asteroid_stor_lista: # Kontrollera om asteroiden finns i listan
                 asteroid_stor_lista.remove(asteroid_stor) # Ta bort asteroiden från listan
