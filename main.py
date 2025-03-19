@@ -40,6 +40,7 @@ pygame.display.set_caption("Space Shooter")
 # Ladda en egen font
 font = pygame.font.Font("assets/fonts/ZenDots-Regular.ttf", 64) # Ange din font-fil
 font_poäng = pygame.font.Font("assets/fonts/ZenDots-Regular.ttf", 24)
+font_meny = pygame.font.Font("assets/fonts/ZenDots-Regular.ttf", 34)
 
 # Skapa en Game Over text
 text_game_over = font.render("SPELET ÄR SLUT!", True, (255, 0, 0)) # Röd färg
@@ -196,7 +197,7 @@ class AsteroidLiten:
     def kollidera(self, rymdskepp):
         if not spelare.exploderat: # Kontrollera kollision endast om skeppet inte är förstört
             if (self.kollisions_rektangel_asteroid.colliderect(rymdskepp)):
-                print("Kollision upptäckt med rymdskeppet!")
+                print("Liten kollision upptäckt med rymdskeppet!")
 
                 # Om spelaren har energi kvar gör det här:
                 asteroid_liten_lista.remove(asteroid_liten) # Ta bort asteroiden från listan
@@ -274,7 +275,7 @@ class AsteroidMellan:
     def kollidera(self, rymdskepp):
         if not spelare.exploderat: # Kontrollera kollision endast om skeppet inte är förstört
             if (self.kollisions_rektangel_asteroid.colliderect(rymdskepp)):
-                print("Kollision upptäckt med rymdskeppet!")
+                print("Medel kollision upptäckt med rymdskeppet!")
 
                 # Om spelaren har energi kvar gör det här:
                 asteroid_mellan_lista.remove(asteroid_mellan) # Ta bort asteroiden från listan
@@ -339,7 +340,7 @@ class AsteroidStor:
     def kollidera(self, rymdskepp):
         if not spelare.exploderat: # Kontrollera kollision endast om skeppet inte är förstört
             if (self.kollisions_rektangel_asteroid.colliderect(rymdskepp)):
-                print("Kollision upptäckt med rymdskeppet!")
+                print("Stor kollision upptäckt med rymdskeppet!")
 
                 # Om spelaren har energi kvar gör det här:
                 asteroid_stor_lista.remove(asteroid_stor) # Ta bort asteroiden från listan
@@ -401,9 +402,9 @@ paus = 0
 
 # *** SPELET STARTAR HÄR ***
 # Spelloop
-spelet_körs = True
-meny_körs = False
-while (meny_körs == True): # Funkar inte än
+meny_körs = True
+spelet_körs = False
+while (meny_körs == True):
     # *** RITA BAKGRUNDSBILDEN ***
     # Skapa en mörk bakgrundsbild
     skärm.blit(background_mörkblå, (0,0))
@@ -420,6 +421,26 @@ while (meny_körs == True): # Funkar inte än
     # Om bakgrunden har rört sig för långt (längden på skärmen) så sätt tillbaka till toppen
     if bakgrund_y >= SKÄRMENS_HÖJD:
         bakgrund_y = 0
+    
+    # Skapa en text för menyn
+    titel_text = font.render("Spaceshooter", True, (255, 255, 255)) # Vit text
+    skärm.blit(titel_text, (200, 100)) # Rita texten i övre mitten
+
+    starta_text = font_meny.render("Starta Spelet", True, (0, 255, 0)) # Grön text
+    skärm.blit(starta_text, (335, 250)) # Rita texten i mitten
+
+    avsluta_text = font_meny.render("Avsluta Spelet", True, (255, 0, 0)) # Röd text
+    skärm.blit(avsluta_text, (325, 350)) # Rita texten i mitten
+
+    # Uppdaterar grafiken på skärmen så att spelaren ser vart alla spelfigurer flyttat någonstans
+    pygame.display.update()
+
+    # Den här koden kollar hela tiden om användaren försöker stänga spelet
+    # genom att klicka på fönstrets stängknapp.
+    for event in pygame.event.get():
+        # Om användaren klickar på fönstrets stängningsknapp avslutas loopen
+        if event.type == pygame.QUIT:
+            meny_körs = False
 
 while (spelet_körs == True):
     # *** RITA BAKGRUNDSBILDEN ***
