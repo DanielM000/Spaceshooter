@@ -59,6 +59,8 @@ sprite_asteroid_liten = pygame.image.load("assets/sprites/small-A.png")
 sprite_asteroid_mellan = pygame.image.load("assets/sprites/medium-A.png")
 # Laddar in en ny sprite till en stor asteroid
 sprite_asteroid_stor = pygame.image.load("assets/sprites/large-A.png")
+# Laddar in en ny sprite till en starta spel
+sprite_starta_spel = pygame.image.load("assets/sprites/bonus_shield.png")
 
 # *** LADDAR IN ALLA BAKGRUNDSBILDER ***
 # Laddar en stjärnbakgrund
@@ -416,7 +418,7 @@ while (meny_körs == True):
     skärm.blit(background_stjärnor, (0, bakgrund_y - SKÄRMENS_HÖJD)) # Andra bilden som ligger ovanpå den första
 
     # Uppdatera både bakgrundsbildernas position
-    bakgrund_y = bakgrund_y + 1 # Rör bakgrunden neråt (justera denna för att få önskad hastighet)
+    bakgrund_y = bakgrund_y + 4 # Rör bakgrunden neråt (justera denna för att få önskad hastighet)
 
     # Om bakgrunden har rört sig för långt (längden på skärmen) så sätt tillbaka till toppen
     if bakgrund_y >= SKÄRMENS_HÖJD:
@@ -424,13 +426,16 @@ while (meny_körs == True):
     
     # Skapa en text för menyn
     titel_text = font.render("Spaceshooter", True, (255, 255, 255)) # Vit text
-    skärm.blit(titel_text, (200, 100)) # Rita texten i övre mitten
+    titel_rektangel = titel_text.get_rect(center=(SKÄRMENS_BREDD // 2, 100))
+    skärm.blit(titel_text, titel_rektangel) # Rita texten i övre mitten
 
     starta_text = font_meny.render("Starta Spelet", True, (0, 255, 0)) # Grön text
-    skärm.blit(starta_text, (335, 250)) # Rita texten i mitten
+    starta_rektangel = starta_text.get_rect(center=(SKÄRMENS_BREDD // 2, 300))
+    skärm.blit(starta_text, starta_rektangel) # Rita texten i mitten
 
     avsluta_text = font_meny.render("Avsluta Spelet", True, (255, 0, 0)) # Röd text
-    skärm.blit(avsluta_text, (325, 350)) # Rita texten i mitten
+    avsluta_rektangel = avsluta_text.get_rect(center=(SKÄRMENS_BREDD // 2, 400))
+    skärm.blit(avsluta_text, avsluta_rektangel) # Rita texten i mitten
 
     # Uppdaterar grafiken på skärmen så att spelaren ser vart alla spelfigurer flyttat någonstans
     pygame.display.update()
@@ -441,6 +446,14 @@ while (meny_körs == True):
         # Om användaren klickar på fönstrets stängningsknapp avslutas loopen
         if event.type == pygame.QUIT:
             meny_körs = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if starta_rektangel.collidepoint(event.pos):  
+                print("Starta spelet klickat!")  # Här kan du starta spelet eller byta scen
+                meny_körs = False
+                spelet_körs = True
+            elif avsluta_rektangel.collidepoint(event.pos):
+                print("Avsluta spelet klickat!")
+                meny_körs = False  # Avslutar spelet om användaren klickar på "AVSLUTA SPELET"
 
 while (spelet_körs == True):
     # *** RITA BAKGRUNDSBILDEN ***
@@ -454,7 +467,7 @@ while (spelet_körs == True):
     skärm.blit(background_stjärnor, (0, bakgrund_y - SKÄRMENS_HÖJD)) # Andra bilden som ligger ovanpå den första
 
     # Uppdatera både bakgrundsbildernas position
-    bakgrund_y = bakgrund_y + 1 # Rör bakgrunden neråt (justera denna för att få önskad hastighet)
+    bakgrund_y = bakgrund_y + 4 # Rör bakgrunden neråt (justera denna för att få önskad hastighet)
 
     # Om bakgrunden har rört sig för långt (längden på skärmen) så sätt tillbaka till toppen
     if bakgrund_y >= SKÄRMENS_HÖJD:
@@ -590,8 +603,9 @@ while (spelet_körs == True):
         # Ritar "Game Over" texten på skärmen.
         skärm.blit(text_game_over, text_rect) # Rita texten på skärmen
         paus = paus + 1
-        if (paus >= 120):
-            exit()
+        if (paus >= 120): # Funkar inte än
+            spelet_körs = False
+            meny_körs = True
 
     # Hantera tangenttryckningar
     keys = pygame.key.get_pressed()
