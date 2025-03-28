@@ -55,10 +55,16 @@ sprite_jetstråle = pygame.image.load("assets/sprites/fire.png")
 sprite_skott = pygame.image.load("assets/sprites/bullet.png")
 # Laddar in en ny sprite till en liten asteroid
 sprite_asteroid_liten = pygame.image.load("assets/sprites/small-A.png")
+sprite_asteroid_liten_alt = pygame.image.load("assets/sprites/small-B.png")
+liten_asteroider = [sprite_asteroid_liten, sprite_asteroid_liten_alt]
 # Laddar in en ny sprite till en mellanstor asteroid
 sprite_asteroid_mellan = pygame.image.load("assets/sprites/medium-A.png")
+sprite_asteroid_mellan_alt = pygame.image.load("assets/sprites/medium-B.png")
+mellan_asteroider = [sprite_asteroid_mellan, sprite_asteroid_mellan_alt]
 # Laddar in en ny sprite till en stor asteroid
 sprite_asteroid_stor = pygame.image.load("assets/sprites/large-A.png")
+sprite_asteroid_stor_alt = pygame.image.load("assets/sprites/large-B.png")
+stor_asteroider = [sprite_asteroid_stor, sprite_asteroid_stor_alt]
 # Laddar in en ny sprite till en starta spel
 sprite_starta_spel = pygame.image.load("assets/sprites/bonus_shield.png")
 
@@ -167,7 +173,7 @@ class AsteroidLiten:
         self.x = asteroid_liten_x # Asteroidens position i x-led
         self.y = asteroid_liten_y # Asteroidens position i y-led
         self.hastighet = 3 # Asteroidens rörelsehastighet
-        self.bild = sprite_asteroid_liten # Använd sprite-bilden
+        self.bild = random.choice(liten_asteroider) # Använd sprite-bilden
         self.kollisions_rektangel_asteroid = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
         self.riktning = random.randint(1, 3) # Sätt en slumpmässig riktning en gång vid skapandet
         
@@ -235,7 +241,7 @@ class AsteroidMellan:
         self.x = asteroid_mellan_x # Asteroidens position i x-led
         self.y = asteroid_mellan_y # Asteroidens position i y-led
         self.hastighet = 2 # Asteroidens rörelsehastighet
-        self.bild = sprite_asteroid_mellan # Används sprite-bilden
+        self.bild = random.choice(mellan_asteroider) # Används sprite-bilden
         self.kollisions_rektangel_asteroid = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
         self.riktning = random.randint(1, 3) # Sätt en slumpmässig riktning en gång vid skapandet
     
@@ -300,7 +306,7 @@ class AsteroidStor:
         self.x = asteroid_stor_x # Asteroidens position i x-led
         self.y = asteroid_stor_y # Asteroidens position i y-led
         self.hastighet = 1 # Asteroidens rörelsehastighet
-        self.bild = sprite_asteroid_stor # Används sprite-bilden
+        self.bild = random.choice(stor_asteroider) # Används sprite-bilden
         self.kollisions_rektangel_asteroid = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
         self.riktning = random.randint(1, 3) # Sätt en slumpmässig riktning en gång vid skapandet
     
