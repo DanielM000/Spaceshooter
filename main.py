@@ -65,8 +65,6 @@ mellan_asteroider = [sprite_asteroid_mellan, sprite_asteroid_mellan_alt]
 sprite_asteroid_stor = pygame.image.load("assets/sprites/large-A.png")
 sprite_asteroid_stor_alt = pygame.image.load("assets/sprites/large-B.png")
 stor_asteroider = [sprite_asteroid_stor, sprite_asteroid_stor_alt]
-# Laddar in en ny sprite till en starta spel
-sprite_starta_spel = pygame.image.load("assets/sprites/bonus_shield.png")
 
 # *** LADDAR IN ALLA BAKGRUNDSBILDER ***
 # Laddar en stjärnbakgrund
@@ -443,6 +441,10 @@ while (meny_körs == True):
     avsluta_rektangel = avsluta_text.get_rect(center=(SKÄRMENS_BREDD // 2, 400))
     skärm.blit(avsluta_text, avsluta_rektangel) # Rita texten i mitten
 
+    info_text = font_meny.render("Styr med piltageneter, skjut med X", True, (255, 255, 0)) # Gul text
+    info_rektangel = starta_text.get_rect(center=(SKÄRMENS_BREDD // 3.5, 600))
+    skärm.blit(info_text, info_rektangel) # Rita texten i botten
+
     # Uppdaterar grafiken på skärmen så att spelaren ser vart alla spelfigurer flyttat någonstans
     pygame.display.update()
 
@@ -544,7 +546,8 @@ while (spelet_körs == True):
             asteroid_liten_lista.remove(asteroid_liten)
         
         if asteroid_liten.kollidera_med_skott(skott_lista):
-            asteroid_liten_lista.remove(asteroid_liten) # Ta bort asteroiden från listan
+            if asteroid_liten in asteroid_liten_lista: # Kontrollera om asteroiden finns i listan
+                asteroid_liten_lista.remove(asteroid_liten) # Ta bort asteroiden från listan
     
     for asteroid_mellan in reversed(asteroid_mellan_lista): # Iterera baklänges genom listan
         
