@@ -65,6 +65,8 @@ mellan_asteroider = [sprite_asteroid_mellan, sprite_asteroid_mellan_alt]
 sprite_asteroid_stor = pygame.image.load("assets/sprites/large-A.png")
 sprite_asteroid_stor_alt = pygame.image.load("assets/sprites/large-B.png")
 stor_asteroider = [sprite_asteroid_stor, sprite_asteroid_stor_alt]
+# Laddar in en ny sprite till bonus liv
+sprite_bonus_liv = pygame.image.load("assets/sprites/bonus_life.png")
 
 # *** LADDAR IN ALLA BAKGRUNDSBILDER ***
 # Laddar en stjärnbakgrund
@@ -101,6 +103,9 @@ asteroid_mellan_lista = [] # Lista för att hållareda på asteroiderna
 # Skapar en tom lista för att fylla med stora asteroider som spawnas
 asteroid_stor_lista = [] # Lista för att hållareda på asteroiderna
 
+# Skapar en tom lista för att fylla med bonus liv som spawnas
+bonus_liv_lista = []
+
 # Lista för alla explosioner (varje explosion är en lista med partiklar)
 explosioner = []
 
@@ -108,7 +113,7 @@ explosioner = []
 skott_räknare = 0 # Håller koll på tiden mellan skott
 
 # Variabel för att skapa en fördröjning för hur ofta en asteroid får skapas
-asteroid_liten_räknare = 0
+asteroid_räknare = 0
 
 # Färger som används till explosionseffekten
 SVART = (0, 0, 0)
@@ -362,6 +367,46 @@ class AsteroidStor:
                     explosion = [Partikel(jetstråle_x, jetstråle_y) for _ in range(100)] # Skapa 100 partiklar
                     explosioner.append(explosion)
 
+class BonusLiv:
+    # Sätter alla instansvariabler för bonus liv
+    def __init__(self, bonus_liv_x, bonus_liv_y):
+        self.x = bonus_liv_x # Bonus livets position i x-led
+        self.y = bonus_liv_y # Bonus livets position i y-led
+        self.hastighet = 2 # Bonus livets rörelsehastighet
+        self.bild = sprite_bonus_liv # Används sprite-bilden
+        self.kollisions_rektangel_asteroid = pygame.Rect(self.x, self.y, self.bild.get_width(), self.bild.get_height())
+        self.riktning = random.randint(1, 3) # Sätt en slumpmässig riktning en gång vid skapandet
+
+    # Metod som flyttar bonus liv neråt
+    def flytta(self):
+        self.y = self.y + self.hastighet # Flytta bonus liv neråt
+        self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
+    
+    # Metod som flyttar bonus liv neråt snett åt vänste
+    def flytta_snett_vänster(self):
+        self.y = self.y + self.hastighet # Flytta bonus liv neråt
+        self.x = self.x - 1
+        self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
+
+    # Metod som flyttar bonus liv neråt snett åt höger
+    def flytta_snett_höger(self):
+        self.y = self.y + self.hastighet # Flytta bonus liv neråt
+        self.x = self.x + 1
+        self.kollisions_rektangel_asteroid.topleft = (self.x, self.y) # Uppdatera rektangelns position
+    
+    # Metod som ritar bonus liv på skärmen
+    def rita(self, skärm):
+        skärm.blit(self.bild, (self.x, self.y)) # Rita bonus liv på skärmen
+    
+    def kollidera(self, rymdskepp):
+        if not spelare.exploderat: # Kontrollera kollision endast om skeppet inte är förstört
+            if (self.kollisions_rektangel_asteroid.colliderect(rymdskepp)):
+                print("Bonus liv upptäckt med rymdskeppet!")
+
+                # Om spelaren har energi kvar gör det här:
+                bonus_liv_lista.remove(bonus_liv) # Ta bort bonus liv från listan
+                gränssnitt_hanteraren.uppdatera_energi_bonus()
+
 # Klass för en enskild partikel
 class Partikel:
     def __init__(self, x, y):
@@ -398,7 +443,13 @@ class Gränssnitt:
         self.energi_kvar = self.energi_kvar - 40
     
     def uppdatera_energi_stor(self):
-        self.energi_kvar = self.energi_kvar -80
+        self.energi_kvar = self.energi_kvar - 80
+    
+    def uppdatera_energi_bonus(self):
+        self.energi_kvar = self.energi_kvar + 30
+        # Om spelaren har slut på energi gör i stället detta:
+        if (self.energi_kvar > 200):
+            self.energi_kvar = 200
     
 spelare = RymdSkepp()
 
@@ -501,23 +552,26 @@ while (spelet_körs == True):
 
     # *** SKAPA NYA ASTEROIDER ***
     # Om tillräckligt lång tid passerat
-    if (asteroid_liten_räknare >= 30):
-        slumptal = random.randint(1, 9)
+    if (asteroid_räknare >= 30):
+        slumptal = random.randint(1, 10)
         if (slumptal <= 5):
             # Skapa en ny instans av liten asteroiden
             asteroid_liten_lista.append(AsteroidLiten(random.randint(0, SKÄRMENS_BREDD), -50))
         elif (slumptal > 5 and slumptal <= 8):
             # Skapa en ny instans av mellanstor asteroid
             asteroid_mellan_lista.append(AsteroidMellan(random.randint(0, SKÄRMENS_BREDD), -50))
-        if (slumptal == 9):
+        elif (slumptal == 9):
             # Skapa en ny instans av stor asteroiden
             asteroid_stor_lista.append(AsteroidStor(random.randint(0, SKÄRMENS_BREDD), -50))
+        elif (slumptal == 10):
+            # Skapa en ny instans av bonus liv
+            bonus_liv_lista.append(BonusLiv(random.randint(0, SKÄRMENS_BREDD), -50))
         
         # Återställ räknaren
-        asteroid_liten_räknare = 0
+        asteroid_räknare = 0
 
     # Uppdaterar asteroid_litens räknare för att se när nästa asteroid ska skapas i spelet
-    asteroid_liten_räknare = asteroid_liten_räknare + 1
+    asteroid_räknare = asteroid_räknare + 1
 
     # Skapa en rektangel för rymdskeppet baserat på dess position och storlek
     kollisions_rektangel_spelare = pygame.Rect(spelare_x, spelare_y, sprite_spelare.get_width(), sprite_spelare.get_height())
@@ -602,6 +656,25 @@ while (spelet_körs == True):
 
             if asteroid_stor in asteroid_stor_lista: # Kontrollera om asteroiden finns i listan
                 asteroid_stor_lista.remove(asteroid_stor) # Ta bort asteroiden från listan
+    
+    for bonus_liv in reversed(bonus_liv_lista): # Iterera baklänges genom listan
+
+        if (bonus_liv.riktning == 1):
+            bonus_liv.flytta_snett_vänster()
+        elif (bonus_liv.riktning == 2):
+            bonus_liv.flytta_snett_höger()
+        elif (bonus_liv.riktning == 3):
+            bonus_liv.flytta()
+
+        # Om asteroiden kolliderar med spelarens rymdskepp    
+        bonus_liv.kollidera(kollisions_rektangel_spelare)
+
+        # Ritar asteroiderna på den plats de för tillfället befinner sig på
+        bonus_liv.rita(skärm)
+
+        # Ta bort asteroider som hamnat utanför skärmen
+        if bonus_liv.y > 700:
+            bonus_liv_lista.remove(bonus_liv)
     
     # Skapa en text som visar poängen
     score_text = font_poäng.render(f"Poäng: {gränssnitt_hanteraren.poäng}", True, (255, 255, 255)) # Vit text
